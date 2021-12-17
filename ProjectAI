@@ -1,0 +1,220 @@
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras import utils
+from tensorflow.keras.preprocessing import image
+from google.colab import files
+import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
+%matplotlib inline
+from tensorflow.python.keras.optimizers import Adam, RMSprop
+#
+# В Keras встроены средства работы с популярными наборами данных
+# x_train_org - изображения из набора данных для обучения
+# y_train_org - правильные ответы (метки) к набору данных для обучения
+# x_test_org - изображения из набора данных для тестирования
+# y_test_org - правильные ответы (метки) к набору данных для тестирования
+(x_train_org, y_train_org), (x_test_org, y_test_org) = mnist.load_data()
+n = 1
+plt.imshow(Image.fromarray(x_test_org[n]).convert('RGBA'))
+plt.show()
+x_train = x_train_org.reshape(60000, 784)
+x_test = x_test_org.reshape(10000, 784)
+# Векторизованные операции
+# Применяются к каждому элементу массива отдельно
+x_train = x_train.astype('float32')
+x_train = x_train / 255 
+x_test = x_test.astype('float32')
+x_test = x_test / 255 
+#
+print(y_test_org[n])
+#
+y_train = utils.to_categorical(y_train_org, 10)
+y_test = utils.to_categorical(y_test_org, 10)
+#
+print(y_test[n])
+#
+model = Sequential()
+#
+# Входной полносвязный слой, 800 нейронов, 784 входа в каждый нейрон
+model.add(Dense(800, input_dim=784, activation="relu"))
+# Выходной полносвязный слой, 10 нейронов (по количеству рукописных цифр)
+model.add(Dense(10, activation="softmax"))
+#
+model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+
+print(model.summary())
+#
+history = model.fit(x_train, 
+                    y_train, 
+                    batch_size=200, 
+                    epochs=10,
+                    verbose=1)
+#
+scores = model.evaluate(x_test, y_test, verbose=1)
+#
+print("Доля верных ответов на тестовых данных, в процентах: ", round(scores[1] * 100, 4), "%", sep="")
+#
+model = Sequential()
+
+# Входной полносвязный слой, 800 нейронов, 784 входа в каждый нейрон
+model.add(Dense(100, input_dim=784, activation="relu"))
+# Выходной полносвязный слой, 10 нейронов (по количеству рукописных цифр)
+model.add(Dense(10, activation="softmax"))
+
+model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+
+history = model.fit(x_train, 
+                    y_train, 
+                    batch_size=200, 
+                    epochs=10,
+                    validation_split=0.2,
+                    verbose=1)
+#
+model = Sequential()
+
+# Входной полносвязный слой, 800 нейронов, 784 входа в каждый нейрон
+model.add(Dense(800, input_dim=784, activation="relu"))
+# Выходной полносвязный слой, 10 нейронов (по количеству рукописных цифр)
+model.add(Dense(10, activation="softmax"))
+
+model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+
+nVal = 40000
+
+history = model.fit(x_train[:nVal], 
+                    y_train[:nVal], 
+                    batch_size=200, 
+                    epochs=10,
+                    validation_data=(x_train[nVal:], y_train[nVal:]),
+                    verbose=1)
+#
+#
+print(history.history.keys())
+#
+history.history['loss']
+
+
+#
+plt.plot(history.history['loss'], 
+         label='Ошибка на обучающем наборе')
+plt.plot(history.history['val_loss'], 
+         label='Ошибка на проверочном наборе')
+plt.xlabel('Эпоха обучения')
+plt.ylabel('Ошибка')
+plt.legend()
+plt.show()
+#
+#
+model = Sequential()
+
+# Входной полносвязный слой, 800 нейронов, 784 входа в каждый нейрон
+model.add(Dense(400, input_dim=784, activation="relu"))
+# Выходной полносвязный слой, 10 нейронов (по количеству рукописных цифр)
+model.add(Dense(10, activation="softmax"))
+
+model.compile(loss="categorical_crossentropy", optimizer=Adam(lr=1e-1), metrics=["accuracy"])
+
+nVal = 100
+
+history = model.fit(x_train[:nVal], 
+                    y_train[:nVal], 
+                    batch_size=200, 
+                    epochs=50,
+                    validation_data=(x_train[nVal:], y_train[nVal:]),
+                    verbose=1)
+
+plt.plot(history.history['acc'], 
+         label='Доля верных ответов на обучающем наборе')
+plt.plot(history.history['val_acc'], 
+         label='Доля верных ответов на проверочном наборе')
+plt.xlabel('Эпоха обучения')
+plt.ylabel('Доля верных ответов')
+plt.legend()
+plt.show()
+#
+#
+model = Sequential()
+
+# Входной полносвязный слой, 800 нейронов, 784 входа в каждый нейрон
+model.add(Dense(400, input_dim=784, activation="relu"))
+model.add(Dropout(0.3))
+# Выходной полносвязный слой, 10 нейронов (по количеству рукописных цифр)
+model.add(Dense(10, activation="softmax"))
+
+model.compile(loss="categorical_crossentropy", optimizer=Adam(lr=1e-1), metrics=["accuracy"])
+
+nVal = 100
+
+history = model.fit(x_train[:nVal], 
+                    y_train[:nVal], 
+                    batch_size=200, 
+                    epochs=50,
+                    validation_data=(x_train[nVal:], y_train[nVal:]),
+                    verbose=1)
+
+plt.plot(history.history['acc'], 
+         label='Доля верных ответов на обучающем наборе')
+plt.plot(history.history['val_acc'], 
+         label='Доля верных ответов на проверочном наборе')
+plt.xlabel('Эпоха обучения')
+plt.ylabel('Доля верных ответов')
+plt.legend()
+plt.show()
+##
+model = Sequential()
+
+# Входной полносвязный слой, 800 нейронов, 784 входа в каждый нейрон
+model.add(Dense(400, input_dim=784, activation="relu"))
+model.add(Dropout(0.8))
+# Выходной полносвязный слой, 10 нейронов (по количеству рукописных цифр)
+model.add(Dense(10, activation="softmax"))
+
+model.compile(loss="categorical_crossentropy", optimizer=Adam(lr=1e-1), metrics=["accuracy"])
+
+nVal = 100
+
+history = model.fit(x_train[:nVal], 
+                    y_train[:nVal], 
+                    batch_size=200, 
+                    epochs=50,
+                    validation_data=(x_train[nVal:], y_train[nVal:]),
+                    verbose=1)
+
+plt.plot(history.history['acc'], 
+         label='Доля верных ответов на обучающем наборе')
+plt.plot(history.history['val_acc'], 
+         label='Доля верных ответов на проверочном наборе')
+plt.xlabel('Эпоха обучения')
+plt.ylabel('Доля верных ответов')
+plt.legend()
+plt.show()
+#
+#
+model = Sequential()
+
+# Входной полносвязный слой, 800 нейронов, 784 входа в каждый нейрон
+model.add(Dense(100, input_dim=784, activation="softmax"))
+#model.add(Dropout(0.2))
+# Выходной полносвязный слой, 10 нейронов (по количеству рукописных цифр)
+model.add(Dense(10, activation="softmax"))
+
+model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+
+history = model.fit(x_train, 
+                    y_train, 
+                    batch_size=200, 
+                    epochs=20,
+                    validation_split=0.2,
+                    verbose=1)
+
+plt.plot(history.history['acc'], 
+         label='Доля верных ответов на обучающем наборе')
+plt.plot(history.history['val_acc'], 
+         label='Доля верных ответов на проверочном наборе')
+plt.xlabel('Эпоха обучения')
+plt.ylabel('Доля верных ответов')
+plt.legend()
+plt.show()
+##########
